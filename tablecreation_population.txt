@@ -1,0 +1,485 @@
+--CREATION OF TABLES
+
+create table USERS(
+    user_id char(5) constraint users_pk primary key,
+    name varchar2(40) constraint users_name_nn not null,
+    pwd varchar2(20) constraint users_pwd_nn not null,
+    gender char(1) constraint users_gender_nn not null, 
+    dob date constraint users_dob_nn not null, 
+    phone numeric(10) constraint users_phone_nn not null,
+    constraint users_phone_uqe unique(phone),
+    constraint users_phone_check check (phone > 999999999),
+    constraint users_gender_check check (gender in ('M','F'))); 
+
+create table ADDRESS(
+    user_id char(5) constraint address_user_id_fk references users(user_id),
+    user_add varchar2(100),
+    constraint address_pk primary key(user_id,user_add));
+
+
+create table DEL_PARTNERS1(
+    emp_id char(5) constraint del_partners1_pk primary key,
+    emp_name varchar2(40) constraint del_partners1_name_nn not null,
+    emp_phone numeric(10) constraint del_partners1_phone_nn not null,
+    emp_dob date constraint del_partners1_dob_nn not null, 
+    starting_add varchar2(200) constraint del_partners1_starting_add_nn not null,
+    license_no char(16) constraint del_partners1_license_no_nn not null,
+    join_year date constraint del_partners1_join_year_nn not null,
+    constraint del_partners1_phone_uqe unique(emp_phone),
+    constraint del_partners1_phone_check check (emp_phone > 999999999),
+    constraint del_partners1_license_no_check check (length(license_no)=16),
+    constraint del_partners1_fk foreign key(join_year) references del_partners2(join_year)); 
+
+create table DEL_PARTNERS2(
+    join_year date constraint del_partners2_join_year_PK primary key,
+    base_sal decimal constraint del_partners2_base_sal_nn not null);
+
+create table RESTAURANTS2(
+    rest_name varchar2(25) constraint restaurants2_pk primary key,
+    owner varchar2(25) constraint restaurants2_owner_nn not null);
+
+create table RESTAURANTS1(
+    rest_id char(6) constraint restaurants_pk primary key,
+    rest_name varchar2(25) constraint restaurants_rest_name_nn not null,
+    rest_add varchar2(100) constraint restaurants_rest_add_nn not null,
+    rest_phone numeric(10) constraint restaurants_rest_phone_nn not null,
+    cuisine varchar2(20) constraint restaurants_cuisine_nn not null,
+    rating decimal constraint restaurants_rating_nn not null,
+    constraint restaurants_phone_chk check (rest_phone > 999999999),
+    constraint restaurants_phone_uqe unique(rest_phone),
+    constraint restaurants_rating_chk check (rating>=0 and rating<=5),
+    constraint restaurants_name_fk foreign key(rest_name) references restaurants2(rest_name));
+
+create table MENU2(
+    item_name varchar2(25) constraint menu2_pk primary key,
+    veg char(1) constraint menu2_veg_nn not null,
+    constraint menu2_veg_chk check(veg in ('V','N')));
+
+
+create table MENU1(
+    item_name varchar2(25) constraint menu1_item_name_fk references menu2(item_name),
+    rest_id char(6) constraint menu1_rest_id_fk references restaurants1(rest_id),
+    rating decimal constraint menu1_rating_nn not null,
+    price decimal constraint menu1_price_nn not null,
+    constraint menu1_ck primary key(item_name, rest_id),
+    constraint menu1_rating_chk check (rating>=0 and rating<=5));
+
+
+
+create table ORDERS_LIST(
+    order_no char(6) constraint orders_order_no_pk primary key,
+    rest_id char(6) constraint orders_rest_id_fk references restaurants1(rest_id),
+    emp_id char(5) constraint orders_emp_id_fk references del_partners1(emp_id),
+    user_id char(5) constraint orders_user_id_fk references users(user_id),
+    ord_time date constraint orders_ord_time_nn not null,
+    delv_time date constraint orders_delv_time_nn not null,
+    delv_add varchar2(100) constraint orders_delv_add not null);
+
+create table ORDER_DETAILS(
+    order_no char(6) constraint order_details_order_no_fk references orders_list(order_no),
+    item_name varchar2(25) constraint order_details_item_name_fk references menu2(item_name),
+    qty int constraint order_details_qty_nn not null,
+    constraint order_details_ck primary key(order_no,item_name),
+    constraint order_details_qty_chk check (qty > 0));
+
+
+create table PAYMENTS(
+    payment_id char(6) constraint payments_pk primary key,
+    order_no char(6) constraint payment_fk references orders_list(order_no),
+    bill_total decimal constraint payment_bill_total_nn not null,
+    constraint payment_bill_total_chk check (bill_total > 0));
+
+
+--POPULATION OF TABLES
+
+
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0001', 'Amit Sharma', 'pwd12345', 'M', TO_DATE('1990-01-15', 'YYYY-MM-DD'), 9876543210, '123, Anna Nagar, Chennai - 600001');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0002', 'Rajesh Kumar', 'pwd54321', 'M', TO_DATE('1985-05-20', 'YYYY-MM-DD'), 8765432109, '456, T Nagar, Chennai - 600002');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0003', 'Priya Singh', 'pwd67890', 'F', TO_DATE('1992-12-30', 'YYYY-MM-DD'), 7654321098, '789, Velachery, Chennai - 600003');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0004', 'Diya Reddy', 'pwd09876', 'F', TO_DATE('1988-07-25', 'YYYY-MM-DD'), 6543210987, '101, Adyar, Chennai - 600004');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0005', 'Karan Verma', 'pwd123abc', 'M', TO_DATE('1995-09-10', 'YYYY-MM-DD'), 5432109876, '202, Guindy, Chennai - 600005');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0006', 'Neha Gupta', 'pwd789xyz', 'F', TO_DATE('1990-11-05', 'YYYY-MM-DD'), 4321098765, '303, Kodambakkam, Chennai - 600006');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0007', 'Vikram Patel', 'pwd456def', 'M', TO_DATE('1987-03-14', 'YYYY-MM-DD'), 3210987654, '404, Mylapore, Chennai - 600007');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0008', 'Meena Iyer', 'pwd654ghi', 'F', TO_DATE('1991-06-18', 'YYYY-MM-DD'), 2109876543, '505, Royapettah, Chennai - 600008');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0009', 'Anil Nair', 'pwd321jkl', 'M', TO_DATE('1989-08-22', 'YYYY-MM-DD'), 1987654321, '606, Saidapet, Chennai - 600009');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0010', 'Rekha Das', 'pwd987mno', 'F', TO_DATE('1994-02-28', 'YYYY-MM-DD'), 1098765432, '707, Triplicane, Chennai - 600010');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0011', 'Suresh Pillai', 'pwd123pqr', 'M', TO_DATE('1996-04-11', 'YYYY-MM-DD'), 1234567890, '808, Tambaram, Chennai - 600011');
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone, address) VALUES
+('U0012', 'Divya Sen', 'pwd456stu', 'F', TO_DATE('1983-10-05', 'YYYY-MM-DD'), 1357924680, '909, Besant Nagar, Chennai - 600012');
+
+
+
+
+
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0001', 'Ravi Prakash', 9876543201, TO_DATE('1980-01-05', 'YYYY-MM-DD'), '101, Thiruvanmiyur, Chennai - 600013', 'LIC12345678901234', TO_DATE('2015-06-01', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0002', 'Deepak Rao', 8765432108, TO_DATE('1983-03-15', 'YYYY-MM-DD'), '102, Nungambakkam, Chennai - 600014', 'LIC23456789012345', TO_DATE('2016-04-10', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0003', 'Sonia Mehta', 7654321097, TO_DATE('1990-05-20', 'YYYY-MM-DD'), '103, Ashok Nagar, Chennai - 600015', 'LIC34567890123456', TO_DATE('2017-07-18', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0004', 'Vikram Desai', 6543210986, TO_DATE('1985-08-25', 'YYYY-MM-DD'), '104, Kilpauk, Chennai - 600016', 'LIC45678901234567', TO_DATE('2018-02-20', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0005', 'Asha Menon', 5432109875, TO_DATE('1987-11-30', 'YYYY-MM-DD'), '105, Ambattur, Chennai - 600017', 'LIC56789012345678', TO_DATE('2019-11-05', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0006', 'Rohan Joshi', 4321098764, TO_DATE('1992-02-15', 'YYYY-MM-DD'), '106, Purasawalkam, Chennai - 600018', 'LIC67890123456789', TO_DATE('2020-05-22', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0007', 'Sneha Kapoor', 3210987653, TO_DATE('1989-04-10', 'YYYY-MM-DD'), '107, Egmore, Chennai - 600019', 'LIC78901234567890', TO_DATE('2021-01-30', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0008', 'Arjun Sinha', 2109876542, TO_DATE('1995-07-22', 'YYYY-MM-DD'), '108, Pallavaram, Chennai - 600020', 'LIC89012345678901', TO_DATE('2014-10-11', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0009', 'Nisha Bhat', 1987654320, TO_DATE('1993-09-18', 'YYYY-MM-DD'), '109, Chromepet, Chennai - 600021', 'LIC90123456789012', TO_DATE('2013-08-21', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0010', 'Vimal Patil', 1098765431, TO_DATE('1988-11-28', 'YYYY-MM-DD'), '110, Teynampet, Chennai - 600022', 'LIC01234567890123', TO_DATE('2012-12-09', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0011', 'Geeta Nair', 1122334455, TO_DATE('1994-01-10', 'YYYY-MM-DD'), '111, Triplicane, Chennai - 600023', 'LIC11223344556677', TO_DATE('2015-05-30', 'YYYY-MM-DD'));
+INSERT INTO DEL_PARTNERS1 (emp_id, emp_name, emp_phone, emp_dob, starting_add, license_no, join_year) VALUES
+('E0012', 'Kiran Malhotra', 6677889900, TO_DATE('1982-03-25', 'YYYY-MM-DD'), '112, Perambur, Chennai - 600024', 'LIC22334455667788', TO_DATE('2016-09-15', 'YYYY-MM-DD'));
+
+
+
+
+
+
+
+
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2015-06-01', 'YYYY-MM-DD'), 35000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2016-04-10', 'YYYY-MM-DD'), 36000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2017-07-18', 'YYYY-MM-DD'), 37000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2018-02-20', 'YYYY-MM-DD'), 38000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2019-11-05', 'YYYY-MM-DD'), 39000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2020-05-22', 'YYYY-MM-DD'), 40000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2021-01-30', 'YYYY-MM-DD'), 41000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2014-10-11', 'YYYY-MM-DD'), 34000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2013-08-21', 'YYYY-MM-DD'), 33000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2012-12-09', 'YYYY-MM-DD'), 32000);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2015-05-30', 'YYYY-MM-DD'), 35500);
+INSERT INTO DEL_PARTNERS2 (join_year, base_sal) VALUES
+(TO_DATE('2016-09-15', 'YYYY-MM-DD'), 36500);
+
+
+
+
+
+
+
+
+
+
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Spice Villa', 'Anita Roy');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Curry Leaf', 'Raghav Kapoor');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Tandoori Nights', 'Meera Nair');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Bombay Bistro', 'Kunal Patel');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Southern Spice', 'Priya Das');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Royal Feast', 'Vivek Chandra');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Masala Magic', 'Sonal Agarwal');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('The Spice Route', 'Arvind Malhotra');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Flavor Town', 'Ritu Gupta');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Chennai Delight', 'Manoj Sinha');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Taste of India', 'Lakshmi Reddy');
+INSERT INTO RESTAURANTS2 (rest_name, owner) VALUES
+('Nirvana Kitchen', 'Ramesh Iyer');
+
+
+
+
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00001', 'Spice Villa', '123, Nungambakkam, Chennai - 600034', 9876543100, 'Indian', 4.5);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00002', 'Curry Leaf', '456, T Nagar, Chennai - 600017', 8765432101, 'South Indian', 4.3);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00003', 'Tandoori Nights', '789, Velachery, Chennai - 600042', 7654321102, 'North Indian', 4.7);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00004', 'Bombay Bistro', '101, Anna Nagar, Chennai - 600040', 6543210103, 'Maharashtrian', 4.4);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00005', 'Southern Spice', '202, Adyar, Chennai - 600020', 5432109204, 'South Indian', 4.8);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00006', 'Royal Feast', '303, Mylapore, Chennai - 600004', 4321098305, 'Indian', 4.6);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00007', 'Masala Magic', '404, Teynampet, Chennai - 600018', 3210987406, 'Indian', 4.2);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00008', 'The Spice Route', '505, Royapettah, Chennai - 600014', 2109876507, 'Indian', 4.1);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00009', 'Flavor Town', '606, Pallavaram, Chennai - 600043', 1987654608, 'Continental', 4.0);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00010', 'Chennai Delight', '707, Saidapet, Chennai - 600015', 1098765709, 'Chettinad', 4.5);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00011', 'Taste of India', '808, Guindy, Chennai - 600032', 1122334455, 'Indian', 4.9);
+INSERT INTO RESTAURANTS1 (rest_id, rest_name, rest_add, rest_phone, cuisine, rating) VALUES
+('R00012', 'Nirvana Kitchen', '909, Tambaram, Chennai - 600045', 6677889900, 'Fusion', 4.6);
+
+
+
+
+
+
+
+-- For Spice Villa (Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Paneer Tikka', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Butter Chicken', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Dal Makhani', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken Biryani', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Aloo Gobi', 'V');
+
+-- For Curry Leaf (South Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Dosa', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken 65', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Idli', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Fish Curry', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Vada', 'V');
+
+-- For Tandoori Nights (North Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Paneer Butter Masala', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Tandoori Chicken', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chole Bhature', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Mutton Rogan Josh', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Naan', 'V');
+
+-- For Bombay Bistro (Maharashtrian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Pav Bhaji', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Bombil Fry', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Misal Pav', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Kheema Pav', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Sabudana Khichdi', 'V');
+
+-- For Southern Spice (South Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Uttapam', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Fish Fry', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Pongal', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken Chettinad', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Rasam', 'V');
+
+-- For Royal Feast (Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Samosa', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken Tikka Masala', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Palak Paneer', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Biryani', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Gulab Jamun', 'V');
+
+-- For Masala Magic (Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Veg Biryani', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Fish Curry', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chana Masala', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken Korma', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Raita', 'V');
+
+-- For The Spice Route (Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Aloo Paratha', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Beef Vindaloo', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Vegetable Pulao', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Lamb Curry', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Papadum', 'V');
+
+-- For Flavor Town (Continental Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Margherita Pizza', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Beef Burger', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Pasta Alfredo', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Grilled Chicken', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Caesar Salad', 'V');
+
+-- For Chennai Delight (Chettinad Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken Chettinad', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Fish Curry', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Egg Kothu Parotta', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Mutton Biryani', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Veg Pulav', 'V');
+
+-- For Taste of India (Indian Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Pani Puri', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Butter Chicken', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Pav Bhaji', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Tandoori Roti', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Gajar Halwa', 'V');
+
+-- For Nirvana Kitchen (Fusion Cuisine)
+INSERT INTO MENU2 (item_name, veg) VALUES ('Sushi', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Steak', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Spring Rolls', 'V');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Chicken Tikka Tacos', 'N');
+INSERT INTO MENU2 (item_name, veg) VALUES ('Mango Sticky Rice', 'V');
+
+
+
+
+-- For Spice Villa
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Paneer Tikka', 'R00001', 4.7, 250);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Butter Chicken', 'R00001', 4.5, 300);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Dal Makhani', 'R00001', 4.3, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken Biryani', 'R00001', 4.6, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Aloo Gobi', 'R00001', 4.2, 180);
+
+-- For Curry Leaf
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Dosa', 'R00002', 4.8, 100);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken 65', 'R00002', 4.6, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Idli', 'R00002', 4.7, 80);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Fish Curry', 'R00002', 4.5, 250);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Vada', 'R00002', 4.6, 70);
+
+-- For Tandoori Nights
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Paneer Butter Masala', 'R00003', 4.9, 280);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Tandoori Chicken', 'R00003', 4.8, 320);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chole Bhature', 'R00003', 4.7, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Mutton Rogan Josh', 'R00003', 4.8, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Naan', 'R00003', 4.5, 50);
+
+-- For Bombay Bistro
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Pav Bhaji', 'R00004', 4.6, 150);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Bombil Fry', 'R00004', 4.7, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Misal Pav', 'R00004', 4.5, 180);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Kheema Pav', 'R00004', 4.8, 250);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Sabudana Khichdi', 'R00004', 4.4, 170);
+
+-- For Southern Spice
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Uttapam', 'R00005', 4.7, 120);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Fish Fry', 'R00005', 4.6, 180);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Pongal', 'R00005', 4.8, 100);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken Chettinad', 'R00005', 4.9, 300);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Rasam', 'R00005', 4.5, 70);
+
+-- For Royal Feast
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Samosa', 'R00006', 4.5, 80);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken Tikka Masala', 'R00006', 4.7, 300);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Palak Paneer', 'R00006', 4.6, 250);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Biryani', 'R00006', 4.8, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Gulab Jamun', 'R00006', 4.4, 100);
+
+-- For Masala Magic
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Veg Biryani', 'R00007', 4.4, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Fish Curry', 'R00007', 4.7, 250);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chana Masala', 'R00007', 4.6, 180);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken Korma', 'R00007', 4.8, 300);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Raita', 'R00007', 4.5, 60);
+
+-- For The Spice Route
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Aloo Paratha', 'R00008', 4.6, 90);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Beef Vindaloo', 'R00008', 4.8, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Vegetable Pulao', 'R00008', 4.7, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Lamb Curry', 'R00008', 4.9, 400);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Papadum', 'R00008', 4.3, 50);
+
+-- For Flavor Town
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Margherita Pizza', 'R00009', 4.8, 300);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Beef Burger', 'R00009', 4.7, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Pasta Alfredo', 'R00009', 4.7, 250);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Grilled Chicken', 'R00009', 4.9, 400);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Caesar Salad', 'R00009', 4.5, 150);
+
+-- For Chennai Delight
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken Chettinad', 'R00010', 4.8, 320);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Fish Curry', 'R00010', 4.7, 280);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Egg Kothu Parotta', 'R00010', 4.6, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Mutton Biryani', 'R00010', 4.9, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Veg Pulav', 'R00010', 4.4, 180);
+
+-- For Taste of India
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Pani Puri', 'R00011', 4.6, 50);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Butter Chicken', 'R00011', 4.7, 300);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Pav Bhaji', 'R00011', 4.5, 150);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Tandoori Roti', 'R00011', 4.6, 30);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Gajar Halwa', 'R00011', 4.8, 100);
+
+-- For Nirvana Kitchen
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Sushi', 'R00012', 4.9, 400);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Steak', 'R00012', 4.8, 450);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Spring Rolls', 'R00012', 4.7, 200);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Chicken Tikka Tacos', 'R00012', 4.8, 350);
+INSERT INTO MENU1 (item_name, rest_id, rating, price) VALUES ('Mango Sticky Rice', 'R00012', 4.6, 250);
+
+
+
+
+
+
+
+
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0001', 'Amit Sharma', 'pwd12345', 'M', TO_DATE('1990-01-15', 'YYYY-MM-DD'), 9876543210);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0002', 'Rajesh Kumar', 'pwd54321', 'M', TO_DATE('1985-05-20', 'YYYY-MM-DD'), 8765432109);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0003', 'Priya Singh', 'pwd67890', 'F', TO_DATE('1992-12-30', 'YYYY-MM-DD'), 7654321098);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0004', 'Sunita Reddy', 'pwd09876', 'F', TO_DATE('1988-07-25', 'YYYY-MM-DD'), 6543210987);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0005', 'Karan Verma', 'pwd123abc', 'M', TO_DATE('1995-09-10', 'YYYY-MM-DD'), 5432109876);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0006', 'Neha Gupta', 'pwd789xyz', 'F', TO_DATE('1990-11-05', 'YYYY-MM-DD'), 4321098765);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0007', 'Vikram Patel', 'pwd456def', 'M', TO_DATE('1987-03-14', 'YYYY-MM-DD'), 3210987654);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0008', 'Meena Iyer', 'pwd654ghi', 'F', TO_DATE('1991-06-18', 'YYYY-MM-DD'), 2109876543);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0009', 'Anil Nair', 'pwd321jkl', 'M', TO_DATE('1989-08-22', 'YYYY-MM-DD'), 1987654321);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0010', 'Rekha Das', 'pwd987mno', 'F', TO_DATE('1994-02-28', 'YYYY-MM-DD'), 1098765432);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0011', 'Suresh Pillai', 'pwd123pqr', 'M', TO_DATE('1996-04-11', 'YYYY-MM-DD'), 1234567890);
+INSERT INTO USERS (user_id, name, pwd, gender, dob, phone) VALUES
+('U0012', 'Divya Sen', 'pwd456stu', 'F', TO_DATE('1983-10-05', 'YYYY-MM-DD'), 1357924680);
+
+
+
+
+
+
+
+
+
+
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0001', '123, Anna Nagar, Chennai - 600001');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0002', '456, T Nagar, Chennai - 600002');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0003', '789, Velachery, Chennai - 600003');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0004', '101, Adyar, Chennai - 600004');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0005', '202, Guindy, Chennai - 600005');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0006', '303, Kodambakkam, Chennai - 600006');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0007', '404, Mylapore, Chennai - 600007');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0008', '505, Royapettah, Chennai - 600008');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0009', '606, Saidapet, Chennai - 600009');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0010', '707, Triplicane, Chennai - 600010');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0011', '808, Tambaram, Chennai - 600011');
+INSERT INTO ADDRESS (user_id, address) VALUES
+('U0012', '909, Besant Nagar, Chennai - 600012');
